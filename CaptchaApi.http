@@ -1,0 +1,17 @@
+@CaptchaApi_HostAddress = http://localhost:5223
+
+POST {{CaptchaApi_HostAddress}}/api/captcha
+Content-Type: application/json
+
+{
+  "maxSpeed": 2.3,
+  "lastSpeed": 0.5,
+  "decelerationRate": 0.8,
+  "decelerationRatio": 70,
+  "speedStability": 0.4,
+  "movementTime": 500,
+  "suddenStopCount": 2,
+  "speedTrend": "gradual",
+  "movementPattern": "normal",
+  "behaviorType": "human"
+}

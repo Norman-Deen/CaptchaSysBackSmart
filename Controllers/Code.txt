@@ -1,0 +1,118 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using CaptchaApi.Models;
+using CaptchaApi.Services;
+using System.Text.Json;
+
+namespace CaptchaApi.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class CaptchaController : ControllerBase
+{
+    [HttpPost]
+    public async Task<IActionResult> ReceiveCaptcha([FromBody] JsonElement data)
+    {
+        Console.Clear();
+        PrintInfo("-Received Captcha Data:", ConsoleColor.Green);
+
+        string ip = HttpContext.Connection.RemoteIpAddress?.ToString() switch
+        {
+            "::1" => "127.0.0.1",
+            null => "unknown",
+            var realIp => realIp
+        };
+
+        Console.WriteLine($"🌐 Stored IP: {ip}");
+
+        // ✅ معالجة الروبوتات أولاً
+        if (data.TryGetProperty("mode", out var modeProperty) && modeProperty.GetString() == "robot-detected")
+        {
+            return await FakeBoxAnalyzer.HandleRobotDetected(data, ip);
+        }
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        var captchaData = JsonSerializer.Deserialize<CaptchaData>(data, options);
+
+        Console.WriteLine("🧪 DEBUG - Received CaptchaData:\n" + JsonSerializer.Serialize(captchaData, new JsonSerializerOptions { WriteIndented = true }));
+
+        string finalStatus = captchaData?.Status == "banned" ? "banned" : "human";
+        Console.WriteLine($"✅ Final Status: {finalStatus.ToUpper()}");
+
+        // ✅ التحقق من الحظر السابق
+        if (await LogService.IsIpBanned(ip))
+        {
+            await LogService.AddAttempt(new AccessEntry
+            {
+                Timestamp = DateTime.Now,
+                Ip = ip,
+                Status = "banned",
+                Reason = "Blocked due to previous ban",
+                SessionId = captchaData?.SessionId,
+
+                MaxSpeed = captchaData?.MaxSpeed ?? 0,
+                LastSpeed = captchaData?.LastSpeed ?? 0,
+                DecelerationRate = captchaData?.DecelerationRate ?? 0,
+                DecelerationRatio = captchaData?.DecelerationRatio ?? 0,
+                SpeedStability = captchaData?.SpeedStability ?? 0,
+                MovementTime = captchaData?.MovementTime ?? 0,
+                SuddenStopCount = captchaData?.SuddenStopCount ?? 0,
+                SpeedTrend = captchaData?.SpeedTrend,
+                MovementPattern = captchaData?.MovementPattern,
+                BehaviorType = captchaData?.BehaviorType
+            });
+
+            Console.WriteLine("❌ This IP was banned before. Blocking again.");
+            return new JsonResult(new { success = false, status = "banned" });
+
+
+        }
+
+        // ✅ طباعة البيانات
+        PrintInfo("✅ Normal human interaction received.", ConsoleColor.Green);
+        PrintInfo("📦 Received Human Interaction Data:", ConsoleColor.Yellow);
+        Console.WriteLine(JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
+
+        await LogService.AddAttempt(new AccessEntry
+        {
+            Timestamp = DateTime.Now,
+            Ip = ip,
+            Status = finalStatus,
+            Reason = captchaData?.Reason,
+            SessionId = captchaData?.SessionId,
+
+            MaxSpeed = captchaData?.MaxSpeed ?? 0,
+            LastSpeed = captchaData?.LastSpeed ?? 0,
+            DecelerationRate = captchaData?.DecelerationRate ?? 0,
+            DecelerationRatio = captchaData?.DecelerationRatio ?? 0,
+            SpeedStability = captchaData?.SpeedStability ?? 0,
+            MovementTime = captchaData?.MovementTime ?? 0,
+            SuddenStopCount = captchaData?.SuddenStopCount ?? 0,
+            SpeedTrend = captchaData?.SpeedTrend,
+            MovementPattern = captchaData?.MovementPattern,
+            BehaviorType = captchaData?.BehaviorType
+        });
+
+        return new ContentResult
+        {
+            Content = "{\"success\":true,\"status\":\"human\"}",
+            ContentType = "application/json",
+            StatusCode = 200
+        };
+
+
+
+
+
+    }
+
+    private void PrintInfo(string message, ConsoleColor color)
+    {
+        Console.ForegroundColor = color;
+        Console.WriteLine(message);
+        Console.ResetColor();
+    }
+}
