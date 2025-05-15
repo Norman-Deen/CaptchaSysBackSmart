@@ -10,11 +10,15 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://127.0.0.1:5500")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.WithOrigins(
+            "http://127.0.0.1:5500",
+            "https://norman-deen.github.io"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
     });
 });
+
 
 // Add services to the container.
 builder.Services.AddControllers();
