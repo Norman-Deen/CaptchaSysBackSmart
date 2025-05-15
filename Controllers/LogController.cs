@@ -17,7 +17,8 @@ public class LogController : ControllerBase
     public IActionResult GetLog()
     {
         if (!System.IO.File.Exists(logFilePath))
-            return NotFound("Log file not found.");
+    return Ok(new string[] { }); // ✅ رجع مصفوفة فاضية بدل NotFound
+
 
         var lines = System.IO.File.ReadAllLines(logFilePath);
         return Ok(lines);
