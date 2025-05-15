@@ -13,19 +13,19 @@ public class LogController : ControllerBase
 
 
 
-    [HttpGet]
-    public IActionResult GetLog()
-    {
-
-    
+[HttpGet]
+public IActionResult GetLog()
+{
     if (!System.IO.File.Exists(logFilePath))
-    return NotFound("Log file not found.");
-
-
-
-        var lines = System.IO.File.ReadAllLines(logFilePath);
-        return Ok(lines);
+    {
+        // ✅ يرجع مصفوفة فاضية بدل نص
+        return Ok(new string[] { });
     }
+
+    var lines = System.IO.File.ReadAllLines(logFilePath);
+    return Ok(lines);
+}
+
 
 
 
