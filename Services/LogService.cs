@@ -1,7 +1,13 @@
 ﻿using CaptchaApi.Models;
 using System.Globalization;
 
+
+
 namespace CaptchaApi.Services;
+
+
+
+
 
 public static class LogService
 {
@@ -16,25 +22,24 @@ public static class LogService
         return lines.Any(line => line.Contains(ip) && line.Contains("banned"));
     }
 
-    public static async Task AddAttempt(AccessEntry logEntry)
+   public static async Task AddAttempt(AccessEntry logEntry)
+{
+    try
     {
-        try
+        Directory.CreateDirectory(Path.GetDirectoryName(logPath)!); // ✅ يضمن وجود المجلد
+
+        bool fileExists = File.Exists(logPath);
+
+        if (!fileExists)
         {
-            bool fileExists = File.Exists(logPath);
+            var headers = string.Join(",", new[] {
+                "timestamp", "ip", "status", "reason", "behaviorType",
+                "maxSpeed", "lastSpeed", "speedStability", "movementTime",
+                "speedSeries", "decelerationRate", "speedVariance", "mlScore",
+                "pageUrl", "userAgent", "boxIndexes", "attemptId"
+            });
 
-            // ✅ كتابة الرؤوس إذا الملف ما وُجد
-            if (!fileExists)
-            {
-                var headers = string.Join(",", new[]
-                {
-                    "timestamp", "ip", "status", "reason", "behaviorType",
-                    "maxSpeed", "lastSpeed", "speedStability", "movementTime",
-                    "speedSeries",
-                    "decelerationRate", "speedVariance", "mlScore",
-                     "pageUrl", "userAgent", "boxIndexes", "attemptId"
-                });
-
-                await File.AppendAllTextAsync(logPath, headers + Environment.NewLine);
+            await File.AppendAllTextAsync(logPath, headers + Environment.NewLine);
                 Console.WriteLine("📄 Created log file with headers.");
             }
 
