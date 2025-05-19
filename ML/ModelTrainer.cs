@@ -42,8 +42,9 @@ public static class ModelTrainer
     {
         var mlContext = new MLContext();
 
-        string dataPath = @"C:\Nour\logs\access-log.csv";
-        string modelPath = @"C:\Nour\logs\mouse-model.zip";
+        string dataPath = Path.Combine(AppContext.BaseDirectory, "logs", "access-log.csv");
+        string modelPath = Path.Combine(AppContext.BaseDirectory, "ML", "mouse-model.zip");
+
 
         Console.WriteLine("🔥 Training Start");
 

@@ -5,7 +5,7 @@ namespace CaptchaApi.ML;
 
 public class ModelEvaluator
 {
-    private static readonly string modelPath = @"C:\Nour\logs\mouse-model.zip";
+    private static readonly string modelPath = Path.Combine(AppContext.BaseDirectory, "ML", "mouse-model.zip");
     private static readonly MLContext mlContext = new MLContext();
     private static ITransformer? trainedModel;
     private static PredictionEngine<MouseData, MousePrediction>? predictionEngine;

@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "ae3BwzSdTB/AAHl2zUziqbPQZ3Ss9TDf8iS+hL0S5AE=",
+  "Source": "CaptchaApi",
+  "BasePath": "_content/CaptchaApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

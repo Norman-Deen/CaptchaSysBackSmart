@@ -1,0 +1,44 @@
+[
+  {
+    "ContainingType": "CaptchaApi.Controllers.CaptchaController",
+    "Method": "ReceiveCaptcha",
+    "RelativePath": "api/Captcha",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "data",
+        "Type": "System.Text.Json.JsonElement",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CaptchaApi.Controllers.LogController",
+    "Method": "GetLog",
+    "RelativePath": "api/Log",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CaptchaApi.Controllers.LogController",
+    "Method": "DeleteLine",
+    "RelativePath": "api/Log/{index}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "index",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]
