@@ -1,14 +1,12 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
-
-//For Arabic font
+// 🟢 دعم الكتابة بالعربية في الكونسول
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-
-// 🟢 إضافة إعدادات CORS
+// 🟢 إعداد CORS للسماح بالوصول من GitHub Pages والمحلي
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins(
             "http://127.0.0.1:5500",
@@ -19,20 +17,17 @@ builder.Services.AddCors(options =>
     });
 });
 
-
-// Add services to the container.
+// 🟢 إضافة الخدمات
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// ✅ تدريب النموذج مرة واحدة عند التشغيل
- //  CaptchaApi.ML.ModelTrainer.TrainAndSaveModel();
+// ✅ تدريب النموذج عند بدء التشغيل (معلّق مؤقتًا)
+// CaptchaApi.ML.ModelTrainer.TrainAndSaveModel();
 
-
-
-// Configure the HTTP request pipeline.
+// 🟢 إعدادات بيئة التطوير
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -41,11 +36,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// 🟢 تفعيل CORS هنا
-app.UseCors();
+// 🟢 تفعيل CORS باستخدام السياسة المسمّاة
+app.UseCors("AllowFrontend");
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+// 🟢 احترام بورت Render
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Urls.Add($"http://*:{port}");
 
 app.Run();
