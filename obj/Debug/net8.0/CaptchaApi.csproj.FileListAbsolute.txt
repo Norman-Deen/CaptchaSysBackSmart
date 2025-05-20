@@ -470,3 +470,4 @@
 \\Ds920n\a16\LIBRARY\Tutorials\0 Programming\0 EC Utbildning SE\10 Examensarbete\Project\CaptchaSys\documentation\V15\Back\CaptchaSysBackSmart\obj\Debug\net8.0\CaptchaApi.pdb
 \\Ds920n\a16\LIBRARY\Tutorials\0 Programming\0 EC Utbildning SE\10 Examensarbete\Project\CaptchaSys\documentation\V15\Back\CaptchaSysBackSmart\obj\Debug\net8.0\CaptchaApi.genruntimeconfig.cache
 \\Ds920n\a16\LIBRARY\Tutorials\0 Programming\0 EC Utbildning SE\10 Examensarbete\Project\CaptchaSys\documentation\V15\Back\CaptchaSysBackSmart\obj\Debug\net8.0\ref\CaptchaApi.dll
+\\Ds920n\a16\LIBRARY\Tutorials\0 Programming\0 EC Utbildning SE\10 Examensarbete\Project\CaptchaSys\documentation\V15\Back\CaptchaSysBackSmart\bin\Debug\net8.0\ML\mouse-model.zip

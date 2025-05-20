@@ -1,11 +1,10 @@
 ﻿using CaptchaApi.Models;
+using System;
 
 namespace CaptchaApi.Services;
 
 public class BehaviorAnalyzer
 {
-    private static Dictionary<string, UserBehaviorRecord> records = new();
-
     public static (string BehaviorType, float MlScore) AnalyzeIpBehavior(CaptchaData data, string ip)
     {
         var now = DateTime.Now;
@@ -17,30 +16,11 @@ public class BehaviorAnalyzer
         string behaviorType = "human";
         int suspiciousScore = 0;
 
-        if (!records.TryGetValue(ip, out var record))
+        // ✅ تحقق من الحظر بناءً على ملف السجل فقط
+        if (LogService.IsIpBanned(ip).Result)
         {
-            Console.WriteLine("New IP detected, creating new record...");
-            record = new UserBehaviorRecord
-            {
-                FirstSeen = now,
-                TotalAttempts = 0,
-                BadAttempts = 0,
-                WarningLevel = 0
-            };
-        }
-        else
-        {
-            if (record.IsBanned)
-            {
-                Console.WriteLine("This IP is permanently banned.");
-                return ("banned", mlScore);
-            }
-
-            if (record.BannedUntil is not null && now < record.BannedUntil)
-            {
-                Console.WriteLine($"This IP is temporarily banned until: {record.BannedUntil}");
-                return ("banned", mlScore);
-            }
+            Console.WriteLine("❌ This IP is already banned from log file.");
+            return ("banned", mlScore);
         }
 
         // ✅ تحليل النموذج باستخدام ML
@@ -57,7 +37,6 @@ public class BehaviorAnalyzer
             mlScore = CaptchaApi.ML.ModelEvaluator.PredictScore(input);
             Console.WriteLine($"🧠 ML Score: {mlScore.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
             Console.WriteLine($"ML score check: suspiciousScore = {suspiciousScore}");
-
         }
         catch (Exception ex)
         {
@@ -73,9 +52,7 @@ public class BehaviorAnalyzer
 
         Console.WriteLine($"📉 DecelerationRate check = {data.DecelerationRate}");
         if (data.DecelerationRate > 0.05f && data.DecelerationRate < 0.12f)
-
             suspiciousScore++;
-
 
         if (data.SpeedSeries != null && data.SpeedSeries.Count > 0)
         {
@@ -86,23 +63,14 @@ public class BehaviorAnalyzer
                 suspiciousScore++;
         }
 
-
-        // ✅ بديل لاحقًا: تصنيف مباشر فقط حسب ML Score
-        // if (mlScore < 0.5f)
-        //     behaviorType = "robot";
-        // else if (mlScore < 0.9f)
-        //     behaviorType = "uncertain";
-        // else
-        //     behaviorType = "human";
-
-
+        // ✅ تخفيض النقاط المشبوهة إذا كانت ML قوية
         if (suspiciousScore == 1 && mlScore > 0.95f)
             suspiciousScore = 0;
 
         if (mlScore > 0.98f && suspiciousScore >= 2)
             suspiciousScore--;
 
-
+        // ✅ تصنيف السلوك
         if (suspiciousScore >= 2)
             behaviorType = "robot";
         else if (suspiciousScore == 1)
@@ -113,43 +81,14 @@ public class BehaviorAnalyzer
         Console.WriteLine($"🤝 Adjusted suspiciousScore (after ML check): {suspiciousScore}");
         Console.WriteLine($"✔️ Final behaviorType: {behaviorType}");
 
-        // ✅ تحديث البيانات
-        record.TotalAttempts++;
-        record.LastSeen = now;
-        record.LastBehaviorType = behaviorType;
-
-        if (behaviorType is "uncertain" or "robot")
-            record.BadAttempts++;
-
-        int warningLevel = record.BadAttempts * 2;
-        if (data.DecelerationRate < 0.2f)
-            warningLevel++;
-
-        record.WarningLevel = warningLevel;
-
-        Console.WriteLine($"Total attempts: {record.TotalAttempts}");
-        Console.WriteLine($"Suspicious attempts: {record.BadAttempts}");
-        Console.WriteLine($"Analyzed behavior: {behaviorType}");
-        Console.WriteLine($"Warning level: {record.WarningLevel}");
-
-        if (warningLevel >= 8)
+        // ✅ إذا كان السلوك خطير، نعيده كـ روبوت – ستتم إضافته للسجل لاحقًا في CaptchaController
+        if (behaviorType == "robot")
         {
-            record.IsBanned = true;
-            Console.WriteLine("Permanent ban applied to this user.");
-            records[ip] = record;
-            return ("banned", mlScore);
+            Console.WriteLine("⚠️ Behavior is too suspicious. Marked as robot.");
+            return ("robot", mlScore);
         }
 
-        if (warningLevel >= 4)
-        {
-            record.BannedUntil = now.AddMinutes(10);
-            Console.WriteLine($"Temporary ban applied for 10 minutes until: {record.BannedUntil}");
-            records[ip] = record;
-            return ("banned", mlScore);
-        }
-
-        Console.WriteLine("Behavior is normal, access granted.");
-        records[ip] = record;
+        Console.WriteLine("✅ Behavior is normal, access granted.");
         return (behaviorType, mlScore);
     }
 }
