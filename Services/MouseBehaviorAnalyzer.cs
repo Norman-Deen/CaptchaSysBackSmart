@@ -1,27 +1,19 @@
-﻿using CaptchaApi.Models;
-using System;
+﻿using System;
 
 namespace CaptchaApi.Services;
 
-public class BehaviorAnalyzer
+public static class MouseBehaviorAnalyzer
 {
-    public static (string BehaviorType, float MlScore) AnalyzeIpBehavior(CaptchaData data, string ip)
+    public static (string BehaviorType, float MlScore) Analyze(CaptchaData data, string ip)
     {
         var now = DateTime.Now;
 
-        Console.WriteLine($"New attempt from IP: {ip}");
+        Console.WriteLine($"New mouse attempt from IP: {ip}");
         Console.WriteLine($"Attempt time: {now:yyyy-MM-dd HH:mm:ss}");
 
-        float mlScore = 1.0f; // نعطيه قيمة مبدئية آمنة
+        float mlScore = 1.0f;
         string behaviorType = "human";
         int suspiciousScore = 0;
-
-        // ✅ تحقق من الحظر بناءً على ملف السجل فقط
-        if (LogService.IsIpBanned(ip).Result)
-        {
-            Console.WriteLine("❌ This IP is already banned from log file.");
-            return ("banned", mlScore);
-        }
 
         // ✅ تحليل النموذج باستخدام ML
         try
@@ -36,7 +28,6 @@ public class BehaviorAnalyzer
 
             mlScore = CaptchaApi.ML.ModelEvaluator.PredictScore(input);
             Console.WriteLine($"🧠 ML Score: {mlScore.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
-            Console.WriteLine($"ML score check: suspiciousScore = {suspiciousScore}");
         }
         catch (Exception ex)
         {
@@ -54,16 +45,15 @@ public class BehaviorAnalyzer
         if (data.DecelerationRate > 0.05f && data.DecelerationRate < 0.12f)
             suspiciousScore++;
 
-        if (data.SpeedSeries != null && data.SpeedSeries.Count > 0)
+        if (data.SpeedSeries is { Count: > 0 })
         {
             float max = data.SpeedSeries.Max();
             float min = data.SpeedSeries.Min();
-
             if (max - min < 0.5f)
                 suspiciousScore++;
         }
 
-        // ✅ تخفيض النقاط المشبوهة إذا كانت ML قوية
+        // ✅ تعديل النقاط المشبوهة حسب ML
         if (suspiciousScore == 1 && mlScore > 0.95f)
             suspiciousScore = 0;
 
@@ -75,20 +65,10 @@ public class BehaviorAnalyzer
             behaviorType = "robot";
         else if (suspiciousScore == 1)
             behaviorType = "uncertain";
-        else
-            behaviorType = "human";
 
-        Console.WriteLine($"🤝 Adjusted suspiciousScore (after ML check): {suspiciousScore}");
+        Console.WriteLine($"🤝 Adjusted suspiciousScore: {suspiciousScore}");
         Console.WriteLine($"✔️ Final behaviorType: {behaviorType}");
 
-        // ✅ إذا كان السلوك خطير، نعيده كـ روبوت – ستتم إضافته للسجل لاحقًا في CaptchaController
-        if (behaviorType == "robot")
-        {
-            Console.WriteLine("⚠️ Behavior is too suspicious. Marked as robot.");
-            return ("robot", mlScore);
-        }
-
-        Console.WriteLine("✅ Behavior is normal, access granted.");
         return (behaviorType, mlScore);
     }
 }

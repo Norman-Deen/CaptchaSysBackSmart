@@ -1050,11 +1050,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "\\\\Ds920n\\a16\\LIBRARY\\Tutorials\\0 Programming\\0 EC Utbildning SE\\10 Examensarbete\\Project\\CaptchaSys\\documentation\\V15\\Back\\CaptchaSysBackSmart\\CaptchaApi.csproj",
+      "projectUniqueName": "\\\\ds920n\\a16\\LIBRARY\\Tutorials\\0 Programming\\0 EC Utbildning SE\\10 Examensarbete\\Project\\CaptchaSys\\documentation\\V16\\Back\\CaptchaSysBackSmart\\CaptchaApi.csproj",
       "projectName": "CaptchaApi",
-      "projectPath": "\\\\Ds920n\\a16\\LIBRARY\\Tutorials\\0 Programming\\0 EC Utbildning SE\\10 Examensarbete\\Project\\CaptchaSys\\documentation\\V15\\Back\\CaptchaSysBackSmart\\CaptchaApi.csproj",
+      "projectPath": "\\\\ds920n\\a16\\LIBRARY\\Tutorials\\0 Programming\\0 EC Utbildning SE\\10 Examensarbete\\Project\\CaptchaSys\\documentation\\V16\\Back\\CaptchaSysBackSmart\\CaptchaApi.csproj",
       "packagesPath": "C:\\Users\\deen8\\.nuget\\packages\\",
-      "outputPath": "\\\\Ds920n\\a16\\LIBRARY\\Tutorials\\0 Programming\\0 EC Utbildning SE\\10 Examensarbete\\Project\\CaptchaSys\\documentation\\V15\\Back\\CaptchaSysBackSmart\\obj\\",
+      "outputPath": "\\\\ds920n\\a16\\LIBRARY\\Tutorials\\0 Programming\\0 EC Utbildning SE\\10 Examensarbete\\Project\\CaptchaSys\\documentation\\V16\\Back\\CaptchaSysBackSmart\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

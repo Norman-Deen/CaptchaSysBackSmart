@@ -1,8 +1,8 @@
 [
   {
-    "ContainingType": "CaptchaApi.Controllers.CaptchaController",
-    "Method": "ReceiveCaptcha",
-    "RelativePath": "api/Captcha",
+    "ContainingType": "MouseCaptchaController",
+    "Method": "Analyze",
+    "RelativePath": "api/box",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -36,6 +36,22 @@
       {
         "Name": "index",
         "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CaptchaApi.Controllers.TouchCaptchaController",
+    "Method": "ReceiveTouchData",
+    "RelativePath": "api/slider",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "rawData",
+        "Type": "System.Text.Json.JsonElement",
         "IsRequired": true
       }
     ],
