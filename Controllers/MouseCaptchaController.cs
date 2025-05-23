@@ -20,12 +20,10 @@ public class MouseCaptchaController : ControllerBase
         Console.ResetColor();
 
         // Extract the IP address of the incoming request
-        string ip = HttpContext.Connection.RemoteIpAddress?.ToString() switch
-        {
-            "::1" => "127.0.0.1",
-            null => "unknown",
-            var realIp => realIp
-        };
+        string ip = HttpContext.Request.Headers.ContainsKey("X-Forwarded-For")
+      ? HttpContext.Request.Headers["X-Forwarded-For"].ToString().Split(',')[0]
+      : HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
 
         // Handle robot-detected signal from frontend (manual override)
         if (data.TryGetProperty("mode", out var modeProperty) && modeProperty.GetString() == "robot-detected")
