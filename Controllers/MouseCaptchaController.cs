@@ -1,24 +1,25 @@
 ﻿using CaptchaApi.Services;
-
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-
-
+using CaptchaApi.Models;
 
 [ApiController]
 [Route("api/box")]
 public class MouseCaptchaController : ControllerBase
 {
+    // A simple counter to track how many requests have been received
     private static int count = 0;
 
     [HttpPost]
     public async Task<IActionResult> Analyze([FromBody] JsonElement data)
     {
+        // Clear console for each request (useful during testing)
         Console.Clear();
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"- Received Mouse Captcha Input: {++count}\n");
+        Console.WriteLine($"Received Mouse Captcha: {++count}\n");
         Console.ResetColor();
 
+        // Extract the IP address of the incoming request
         string ip = HttpContext.Connection.RemoteIpAddress?.ToString() switch
         {
             "::1" => "127.0.0.1",
@@ -26,10 +27,10 @@ public class MouseCaptchaController : ControllerBase
             var realIp => realIp
         };
 
-        // Robot logic
+        // Handle robot-detected signal from frontend (manual override)
         if (data.TryGetProperty("mode", out var modeProperty) && modeProperty.GetString() == "robot-detected")
         {
-            Console.WriteLine("🤖 Robot detected (frontend signal)");
+            Console.WriteLine("Robot detected (frontend signal)");
 
             string reason = data.TryGetProperty("reason", out var reasonElem) ? reasonElem.GetString() ?? "Three fake clicks detected" : "Three fake clicks detected";
             string attemptId = data.TryGetProperty("attemptId", out var idElem) ? idElem.GetString() ?? Guid.NewGuid().ToString() : Guid.NewGuid().ToString();
@@ -42,11 +43,12 @@ public class MouseCaptchaController : ControllerBase
                 boxIndexes = boxArrayElem.EnumerateArray().Select(x => x.GetInt32()).ToList();
             }
 
+            // Log the attempt as a robot
             await LogService.AddAttempt(new AccessEntry
             {
                 Timestamp = DateTime.Now,
                 Ip = ip,
-                InputType = "mouse", // ✅ تحديد النوع من داخل السيرفر
+                InputType = "mouse",
                 Status = "banned",
                 Reason = reason,
                 AttemptId = attemptId,
@@ -56,31 +58,32 @@ public class MouseCaptchaController : ControllerBase
                 BehaviorType = "robot"
             });
 
-            Console.WriteLine("⛔ Status: BANNED");
             return Content("{\"success\":false,\"status\":\"banned\"}", "application/json");
         }
 
+        // Deserialize the incoming JSON into a CaptchaData object
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var captchaData = JsonSerializer.Deserialize<CaptchaData>(data, options);
 
         if (captchaData == null)
         {
-            Console.WriteLine("❌ captchaData is null");
+            Console.WriteLine("captchaData is null");
             return BadRequest(new { success = false, status = "invalid" });
         }
 
-       
-
+        // Analyze behavior using mouse-specific features
         (string behavior, float score) = MouseBehaviorAnalyzer.Analyze(captchaData, ip);
 
-        Console.WriteLine("📦 Raw Mouse Data:");
+        // Log raw input data for review
+        Console.WriteLine("Raw Mouse Data:");
         Console.WriteLine(JsonSerializer.Serialize(captchaData, new JsonSerializerOptions { WriteIndented = true }));
 
+        // Save the attempt to the log
         await LogService.AddAttempt(new AccessEntry
         {
             Timestamp = DateTime.Now,
             Ip = ip,
-            InputType = "mouse", // ✅ تحديد النوع من داخل السيرفر
+            InputType = "mouse",
             Status = behavior == "robot" ? "banned" : "accepted",
             BehaviorType = behavior,
             MlScore = score,
@@ -95,6 +98,7 @@ public class MouseCaptchaController : ControllerBase
             AttemptId = Guid.NewGuid().ToString()
         });
 
+        // Return the result to the client
         if (behavior == "robot")
             return Content("{\"success\":false,\"status\":\"banned\"}", "application/json");
 
@@ -102,54 +106,19 @@ public class MouseCaptchaController : ControllerBase
     }
 }
 
-public class AccessEntry
-{
-    public DateTime Timestamp { get; set; }
-    public string? Status { get; set; }
-    public string? Reason { get; set; }
-    public string? Ip { get; set; }
-
-    // 🔄 جديد: تمييز نوع الإدخال
-    public string? InputType { get; set; } // "mouse" أو "touch"
-
-    // 🔢 خصائص لمنطق اللمس
-    public float? VerticalScore { get; set; }
-    public int? VerticalCount { get; set; }
-    public float? TotalVerticalMovement { get; set; }
-    public float? AvgSpeed { get; set; }
-    public float? StdSpeed { get; set; }
-    public int? AccelerationChanges { get; set; }
-
-    // 🐭 خصائص الماوس
-    public double? MaxSpeed { get; set; }
-    public double? LastSpeed { get; set; }
-    public double? SpeedStability { get; set; }
-
-    public int? MovementTime { get; set; }
-    public List<float>? SpeedSeries { get; set; }
-
-    public string? BehaviorType { get; set; }
-    public float? MlScore { get; set; }
-
-    public string? UserAgent { get; set; }
-    public string? PageUrl { get; set; }
-    public string? AttemptId { get; set; }
-    public List<int>? BoxIndexes { get; set; }
-}
-
-
+// Represents the structure of mouse interaction data sent from the frontend
 public class CaptchaData
 {
-    public float MaxSpeed { get; set; }
-    public float LastSpeed { get; set; }
-    public float SpeedStability { get; set; }
-    public int MovementTime { get; set; }
-    public List<float>? SpeedSeries { get; set; }
-    public string? AttemptId { get; set; }
-    public string? UserAgent { get; set; }
-    public string? BehaviorType { get; set; }
-    public string? Status { get; set; }
-    public string? PageUrl { get; set; }
-    public string? Reason { get; set; }
-    public float DecelerationRate { get; set; }
+    public float MaxSpeed { get; set; } // Maximum mouse speed during the interaction
+    public float LastSpeed { get; set; } // Last recorded speed before submitting
+    public float SpeedStability { get; set; } // How stable the speed was across the interaction
+    public int MovementTime { get; set; } // Total duration of movement in milliseconds
+    public List<float>? SpeedSeries { get; set; } // List of all recorded speed values
+    public string? AttemptId { get; set; } // Unique identifier for this attempt
+    public string? UserAgent { get; set; } // Browser and device information
+    public string? BehaviorType { get; set; } // Classification label, if provided by client
+    public string? Status { get; set; } // Result label, if provided by client
+    public string? PageUrl { get; set; } // The URL where the captcha appeared
+    public string? Reason { get; set; } // Reason for classification or banning
+    public float DecelerationRate { get; set; } // How quickly the movement slowed down
 }
