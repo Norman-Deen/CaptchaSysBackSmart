@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using CaptchaApi.ML;
 
 namespace CaptchaApi.Services
@@ -22,6 +23,44 @@ namespace CaptchaApi.Services
             float mlScore = 1.0f;
             string behaviorType = "human";
 
+            // Extra calculations from speedSeries if available
+            float avgSpeed = 0;
+            float stdSpeed = 0;
+            int accelerationChanges = 0;
+            float decelerationRate = 0;
+            float speedVariance = 0;
+
+            if (data.SpeedSeries != null && data.SpeedSeries.Count > 0)
+            {
+                // avgSpeed
+                avgSpeed = (float)data.SpeedSeries.Average();
+
+                // stdSpeed
+                var mean = data.SpeedSeries.Average();
+                stdSpeed = (float)Math.Sqrt(data.SpeedSeries.Average(s => Math.Pow(s - mean, 2)));
+
+                // accelerationChanges
+                for (int i = 1; i < data.SpeedSeries.Count - 1; i++)
+                {
+                    var prev = data.SpeedSeries[i - 1];
+                    var curr = data.SpeedSeries[i];
+                    var next = data.SpeedSeries[i + 1];
+
+                    if ((curr > prev && curr > next) || (curr < prev && curr < next))
+                        accelerationChanges++;
+                }
+
+                // decelerationRate
+                var recent = data.SpeedSeries.TakeLast(5).ToList();
+                var recentAvg = recent.Average();
+                var last = data.LastSpeed;
+                if (recentAvg > 0)
+                    decelerationRate = (float)((recentAvg - last) / recentAvg);
+
+                // speedVariance
+                speedVariance = (float)data.SpeedSeries.Average(s => Math.Pow(s - mean, 2));
+            }
+
             try
             {
                 // Create the input object for the machine learning model
@@ -32,15 +71,15 @@ namespace CaptchaApi.Services
                     verticalScore = 0, // not used for mouse
                     verticalCount = 0,
                     totalVerticalMovement = 0,
-                    avgSpeed = 0,
-                    stdSpeed = 0,
-                    accelerationChanges = 0,
+                    avgSpeed = avgSpeed,
+                    stdSpeed = stdSpeed,
+                    accelerationChanges = accelerationChanges,
                     maxSpeed = data.MaxSpeed,
                     lastSpeed = data.LastSpeed,
                     speedStability = (float)data.SpeedStability,
                     movementTime = data.MovementTime,
-                    decelerationRate = data.DecelerationRate,
-                    speedVariance = 0
+                    decelerationRate = decelerationRate,
+                    speedVariance = speedVariance
                 };
 
                 // Call the ML model to evaluate the user behavior
@@ -58,6 +97,13 @@ namespace CaptchaApi.Services
                 // Catch and print any error that might occur during ML evaluation
                 Console.WriteLine($"ML prediction failed: {ex.Message}");
             }
+
+            // Inject computed values back into the original data object
+            data.AvgSpeed = avgSpeed;
+            data.StdSpeed = stdSpeed;
+            data.AccelerationChanges = accelerationChanges;
+            data.DecelerationRate = decelerationRate;
+            data.SpeedVariance = speedVariance;
 
             // Return the final classification result and score
             return (behaviorType, mlScore);

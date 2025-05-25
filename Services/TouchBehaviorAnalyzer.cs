@@ -1,6 +1,7 @@
 ﻿using CaptchaApi.Controllers;
 using CaptchaApi.ML;
 using System;
+using System.Linq;
 
 namespace CaptchaApi.Services
 {
@@ -15,51 +16,94 @@ namespace CaptchaApi.Services
         {
             var now = DateTime.Now;
 
-            // Log when a new attempt is received for traceability
             Console.WriteLine("New touch attempt received");
             Console.WriteLine($"Attempt time: {now:yyyy-MM-dd HH:mm:ss}");
 
-            // Default values in case the ML model fails
+            // Default values
             float mlScore = 1.0f;
             string behaviorType = "human";
 
+            // Prepare values and override incomplete ones from frontend
+            float avgSpeed = data.AvgSpeed;
+            float stdSpeed = data.StdSpeed;
+            int accelerationChanges = data.AccelerationChanges;
+            float speedVariance = 0;
+            float decelerationRate = 0;
+
+            if (data.SpeedSeries != null && data.SpeedSeries.Count > 0)
+            {
+                var speeds = data.SpeedSeries;
+                avgSpeed = (float)speeds.Average();
+                var mean = avgSpeed;
+
+                stdSpeed = (float)Math.Sqrt(speeds.Average(s => Math.Pow(s - mean, 2)));
+                speedVariance = (float)speeds.Average(s => Math.Pow(s - mean, 2));
+
+                // Acceleration changes
+                accelerationChanges = 0;
+                for (int i = 1; i < speeds.Count - 1; i++)
+                {
+                    var prev = speeds[i - 1];
+                    var curr = speeds[i];
+                    var next = speeds[i + 1];
+                    if ((curr > prev && curr > next) || (curr < prev && curr < next))
+                        accelerationChanges++;
+                }
+
+                // Deceleration rate
+                var last = speeds.Last();
+                var recent = speeds.TakeLast(5).ToList();
+                var recentAvg = recent.Average();
+                if (recentAvg > 0)
+                    decelerationRate = (recentAvg - last) / recentAvg;
+            }
+
             try
             {
-                // Build input for ML model using touch-specific features
+                //Console.WriteLine($"Injected values after analysis: " +
+                //    $"AvgSpeed={avgSpeed}, " +
+                //    $"StdSpeed={stdSpeed}, " +
+                //    $"AccelerationChanges={accelerationChanges}, " +
+                //    $"DecelerationRate={decelerationRate}, " +
+                //    $"SpeedVariance={speedVariance}");
+
+                // Build input for ML model using all computed features
                 var input = new UserBehaviorInput
                 {
-                    inputType = 1, // 1 represents touch input
+                    inputType = 1,
                     verticalScore = data.VerticalScore ?? 0,
                     verticalCount = data.VerticalCount,
                     totalVerticalMovement = data.TotalVerticalMovement,
-                    avgSpeed = data.AvgSpeed,
-                    stdSpeed = data.StdSpeed,
-                    accelerationChanges = data.AccelerationChanges,
-                    maxSpeed = 0, // not used in touch
-                    lastSpeed = 0, // not used in touch
-                    speedStability = 0, // not used in touch
+                    avgSpeed = avgSpeed,
+                    stdSpeed = stdSpeed,
+                    accelerationChanges = accelerationChanges,
+                    maxSpeed = 0,
+                    lastSpeed = 0,
+                    speedStability = 0,
                     movementTime = data.MovementTime,
-                    decelerationRate = 0, // optional, not used currently
-                    speedVariance = 0 // optional, not used currently
+                    decelerationRate = decelerationRate,
+                    speedVariance = speedVariance
                 };
 
-                // Evaluate the input using the ML model
                 mlScore = _evaluator.Evaluate(input);
-
-                // Based on the score, classify the behavior
                 behaviorType = mlScore >= 0.75f ? "human" : "robot";
 
-                // Output the results to the console for monitoring
                 Console.WriteLine($"ML Score: {mlScore:0.00}");
                 Console.WriteLine($"Behavior: {behaviorType}");
+
+                // Inject the final computed values back into the data object
+                data.AvgSpeed = avgSpeed;
+                data.StdSpeed = stdSpeed;
+                data.AccelerationChanges = accelerationChanges;
+                data.DecelerationRate = decelerationRate;
+                data.SpeedVariance = speedVariance;
+
             }
             catch (Exception ex)
             {
-                // Log any error that occurs during ML evaluation
                 Console.WriteLine($"ML Evaluation failed: {ex.Message}");
             }
 
-            // Return both the classification and the ML score
             return (behaviorType, mlScore);
         }
     }

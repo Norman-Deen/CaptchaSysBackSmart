@@ -3,12 +3,13 @@ using CaptchaApi.Models;
 
 namespace CaptchaApi.Services;
 
+// Handles all logging functionality for user attempts
 public static class LogService
 {
-    // Path to the log file that will store all access attempts in CSV format
+    // Path to the CSV log file where access attempts are saved
     private static readonly string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs", "access-log.csv");
 
-    // Checks if a given IP address has been previously banned
+    // Checks if the given IP address has a previous banned entry in the log
     public static async Task<bool> IsIpBanned(string ip)
     {
         if (!File.Exists(logPath)) return false;
@@ -17,20 +18,20 @@ public static class LogService
         return lines.Any(line => line.Contains(ip) && line.Contains("banned"));
     }
 
-    // Records a new access attempt in the CSV log file
+    // Writes a new access attempt into the CSV log file
     public static async Task AddAttempt(AccessEntry logEntry)
     {
         try
         {
-            // Ensure the directory for the log file exists
+            // Make sure the Logs directory exists
             Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
-
             bool fileExists = File.Exists(logPath);
 
-            // If the log file does not exist, create it and write the header row
+            // If log file doesn't exist, create it and write the column headers
             if (!fileExists)
             {
-                var headers = string.Join(",", new[] {
+                var headers = string.Join(",", new[]
+                {
                     "timestamp", "ip", "inputType", "status", "reason", "behaviorType",
                     "verticalScore", "verticalCount", "totalVerticalMovement",
                     "avgSpeed", "stdSpeed", "accelerationChanges",
@@ -43,26 +44,7 @@ public static class LogService
                 Console.WriteLine("Log file created with column headers.");
             }
 
-            // Calculate deceleration rate based on the last few speed values
-            double? decelerationRate = null;
-            if (logEntry.SpeedSeries != null && logEntry.SpeedSeries.Count > 0)
-            {
-                var recent = logEntry.SpeedSeries.TakeLast(5).ToList();
-                var avg = recent.Average();
-                var last = logEntry.LastSpeed ?? 0;
-                if (avg > 0)
-                    decelerationRate = (avg - last) / avg;
-            }
-
-            // Calculate variance in the speed data to understand behavior stability
-            double? speedVariance = null;
-            if (logEntry.SpeedSeries != null && logEntry.SpeedSeries.Count > 1)
-            {
-                var mean = logEntry.SpeedSeries.Average();
-                speedVariance = logEntry.SpeedSeries.Average(s => Math.Pow(s - mean, 2));
-            }
-
-            // Create a CSV line from the log entry and calculated values
+            // Construct a CSV-formatted line from the access entry data
             var csvLine = string.Join(",", new[]
             {
                 Quote(logEntry.Timestamp.ToString("s")),
@@ -89,8 +71,8 @@ public static class LogService
                     ? Quote(string.Join(";", logEntry.SpeedSeries.Select(s => s.ToString("0.00", CultureInfo.InvariantCulture))))
                     : "",
 
-                decelerationRate?.ToString("0.00", CultureInfo.InvariantCulture) ?? "",
-                speedVariance?.ToString("0.00", CultureInfo.InvariantCulture) ?? "",
+                logEntry.DecelerationRate?.ToString("0.00", CultureInfo.InvariantCulture) ?? "",
+                logEntry.SpeedVariance?.ToString("0.00", CultureInfo.InvariantCulture) ?? "",
                 logEntry.MlScore?.ToString("0.00", CultureInfo.InvariantCulture) ?? "",
 
                 Quote(logEntry.PageUrl),
@@ -101,18 +83,18 @@ public static class LogService
                 Quote(logEntry.AttemptId)
             });
 
-            // Write the constructed line into the CSV file
+            // Append the line to the CSV file
             await File.AppendAllTextAsync(logPath, csvLine + Environment.NewLine);
             Console.WriteLine("Log entry successfully written to file.");
         }
         catch (Exception ex)
         {
-            // If something goes wrong, write the error message to the console
+            // Handle any error that occurs during file write
             Console.WriteLine("Error while writing to log: " + ex.Message);
         }
     }
 
-    // Utility function to safely quote CSV values, including escaping inner quotes
+    // Escapes and wraps a CSV field in double quotes to avoid formatting issues
     private static string Quote(string? value)
     {
         return $"\"{value?.Replace("\"", "\"\"") ?? ""}\"";

@@ -5,27 +5,28 @@ using CaptchaApi.Models;
 
 [ApiController]
 [Route("api/box")]
+// Controller responsible for handling mouse-based captcha submissions
 public class MouseCaptchaController : ControllerBase
 {
-    // A simple counter to track how many requests have been received
+    // Counter for tracking the number of received mouse captchas
     private static int count = 0;
 
     [HttpPost]
+    // Handles incoming mouse interaction data and analyzes user behavior
     public async Task<IActionResult> Analyze([FromBody] JsonElement data)
     {
-        // Clear console for each request (useful during testing)
+        // Clear console output for clean testing view
         Console.Clear();
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine($"Received Mouse Captcha: {++count}\n");
         Console.ResetColor();
 
-        // Extract the IP address of the incoming request
+        // Get client IP address (handles proxies and direct connections)
         string ip = HttpContext.Request.Headers.ContainsKey("X-Forwarded-For")
-      ? HttpContext.Request.Headers["X-Forwarded-For"].ToString().Split(',')[0]
-      : HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            ? HttpContext.Request.Headers["X-Forwarded-For"].ToString().Split(',')[0]
+            : HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-
-        // Handle robot-detected signal from frontend (manual override)
+        // Manually triggered robot detection from frontend
         if (data.TryGetProperty("mode", out var modeProperty) && modeProperty.GetString() == "robot-detected")
         {
             Console.WriteLine("Robot detected (frontend signal)");
@@ -41,7 +42,7 @@ public class MouseCaptchaController : ControllerBase
                 boxIndexes = boxArrayElem.EnumerateArray().Select(x => x.GetInt32()).ToList();
             }
 
-            // Log the attempt as a robot
+            // Log banned attempt
             await LogService.AddAttempt(new AccessEntry
             {
                 Timestamp = DateTime.Now,
@@ -59,7 +60,7 @@ public class MouseCaptchaController : ControllerBase
             return Content("{\"success\":false,\"status\":\"banned\"}", "application/json");
         }
 
-        // Deserialize the incoming JSON into a CaptchaData object
+        // Parse incoming JSON into CaptchaData object
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var captchaData = JsonSerializer.Deserialize<CaptchaData>(data, options);
 
@@ -69,14 +70,14 @@ public class MouseCaptchaController : ControllerBase
             return BadRequest(new { success = false, status = "invalid" });
         }
 
-        // Analyze behavior using mouse-specific features
+        // Analyze the user's mouse behavior and classify it
         (string behavior, float score) = MouseBehaviorAnalyzer.Analyze(captchaData, ip);
 
-        // Log raw input data for review
+        // Print raw data to console for review
         Console.WriteLine("Raw Mouse Data:");
         Console.WriteLine(JsonSerializer.Serialize(captchaData, new JsonSerializerOptions { WriteIndented = true }));
 
-        // Save the attempt to the log
+        // Save all analyzed data to the log file
         await LogService.AddAttempt(new AccessEntry
         {
             Timestamp = DateTime.Now,
@@ -93,10 +94,15 @@ public class MouseCaptchaController : ControllerBase
             SpeedSeries = captchaData.SpeedSeries,
             PageUrl = captchaData.PageUrl,
             UserAgent = captchaData.UserAgent,
-            AttemptId = Guid.NewGuid().ToString()
+            AttemptId = Guid.NewGuid().ToString(),
+            AvgSpeed = captchaData.AvgSpeed,
+            StdSpeed = captchaData.StdSpeed,
+            AccelerationChanges = captchaData.AccelerationChanges,
+            SpeedVariance = captchaData.SpeedVariance,
+            DecelerationRate = captchaData.DecelerationRate
         });
 
-        // Return the result to the client
+        // Return classification result to the client
         if (behavior == "robot")
             return Content("{\"success\":false,\"status\":\"banned\"}", "application/json");
 
@@ -104,19 +110,23 @@ public class MouseCaptchaController : ControllerBase
     }
 }
 
-// Represents the structure of mouse interaction data sent from the frontend
+// Data model for mouse interaction values received from the frontend
 public class CaptchaData
 {
-    public float MaxSpeed { get; set; } // Maximum mouse speed during the interaction
-    public float LastSpeed { get; set; } // Last recorded speed before submitting
-    public float SpeedStability { get; set; } // How stable the speed was across the interaction
-    public int MovementTime { get; set; } // Total duration of movement in milliseconds
-    public List<float>? SpeedSeries { get; set; } // List of all recorded speed values
-    public string? AttemptId { get; set; } // Unique identifier for this attempt
-    public string? UserAgent { get; set; } // Browser and device information
-    public string? BehaviorType { get; set; } // Classification label, if provided by client
-    public string? Status { get; set; } // Result label, if provided by client
-    public string? PageUrl { get; set; } // The URL where the captcha appeared
-    public string? Reason { get; set; } // Reason for classification or banning
-    public float DecelerationRate { get; set; } // How quickly the movement slowed down
+    public float MaxSpeed { get; set; }                 // Highest speed during interaction
+    public float LastSpeed { get; set; }                // Final speed before submission
+    public float SpeedStability { get; set; }           // Consistency of speed throughout
+    public int MovementTime { get; set; }               // Total interaction duration in ms
+    public List<float>? SpeedSeries { get; set; }       // Raw list of recorded speeds
+    public string? AttemptId { get; set; }              // Unique attempt identifier
+    public string? UserAgent { get; set; }              // Browser/device info
+    public string? BehaviorType { get; set; }           // Optional override from frontend
+    public string? Status { get; set; }                 // Optional override status
+    public string? PageUrl { get; set; }                // Source page of interaction
+    public string? Reason { get; set; }                 // Reason for flagging (if any)
+    public float DecelerationRate { get; set; }         // Rate of speed decline
+    public float AvgSpeed { get; set; }                 // Calculated average speed
+    public float StdSpeed { get; set; }                 // Standard deviation of speed
+    public int AccelerationChanges { get; set; }        // Number of speed changes
+    public float SpeedVariance { get; set; }            // Variability in speed
 }
