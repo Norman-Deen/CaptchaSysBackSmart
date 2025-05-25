@@ -14,6 +14,14 @@
   <ItemGroup>
     <Folder Include="Logs\" />
   </ItemGroup>
+  
+  
+  <!-- I added this for ai zip model -->
+  <ItemGroup>
+    <None Update="ML\score-model.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 
 </Project>
