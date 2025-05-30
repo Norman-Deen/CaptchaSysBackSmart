@@ -44,3 +44,4 @@ Backend API for a smart CAPTCHA system that detects and blocks bots based on mou
 📧 [Deen80@live.com](mailto:Deen80@live.com)
 🌍 [LinkedIn](https://www.linkedin.com/in/nour-tinawi)
 
+**hasan Sero**
