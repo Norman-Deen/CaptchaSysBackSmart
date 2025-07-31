@@ -2,7 +2,7 @@
 
 Backend API for a smart CAPTCHA system that detects and blocks bots by analyzing mouse and touch behavior using a custom AI model.
 
-> ⚠️ **Private Project** – Developed as part of a graduation thesis at EC Utbildning. Not open-source.
+⚠️ Private Project – Developed as part of a graduation thesis at EC Utbildning. Not open-source.
 
 ---
 
@@ -16,12 +16,12 @@ It is built with .NET and ML.NET and uses a lightweight structure that logs inte
 
 ## 🔧 Features
 
-- 🧠 **AI Detection**: Human vs. bot classification using ML.NET  
-- 📩 **Data Endpoints**: Separate routes for checkbox (mouse) and slider (touch) data  
-- 📁 **CSV Logging**: All interaction data is stored in `/Logs/access-log.csv`  
-- 🔄 **REST API**: To view and manage stored logs  
-- 🤝 **CORS Support**: For full integration with the frontend  
-- ⚙️ **Ping Endpoint**: For uptime and health checks
+- AI Detection using ML.NET
+- Separate endpoints for mouse (checkbox) and touch (slider) data
+- Logs data to: `/Logs/access-log.csv`
+- REST API to manage logs
+- CORS enabled for frontend communication
+- Ping endpoint for uptime/health checks
 
 ---
 
@@ -29,11 +29,11 @@ It is built with .NET and ML.NET and uses a lightweight structure that logs inte
 
 | Method | Endpoint             | Description                          |
 |--------|----------------------|--------------------------------------|
-| POST   | `/api/box`           | Submit mouse interaction data        |
-| POST   | `/api/slider`        | Submit touch (slider) data           |
-| GET    | `/api/log`           | Retrieve all logged interaction data |
-| DELETE | `/api/log/{index}`   | Delete a specific log entry          |
-| GET    | `/api/ping`          | Health check / keep-alive            |
+| POST   | /api/box             | Submit mouse interaction data        |
+| POST   | /api/slider          | Submit touch (slider) data           |
+| GET    | /api/log             | Retrieve all logged interaction data |
+| DELETE | /api/log/{index}     | Delete a specific log entry          |
+| GET    | /api/ping            | Health check / keep-alive            |
 
 ---
 
@@ -41,46 +41,48 @@ It is built with .NET and ML.NET and uses a lightweight structure that logs inte
 
 1. Make sure you have [.NET 6 or later](https://dotnet.microsoft.com/en-us/download)
 2. Run the backend locally with:
+
    ```bash
    dotnet run
-````
+   ```
 
 3. Default behavior:
+   - Logs saved to: `Logs/access-log.csv`
+   - AI model file path: `ML/score-model.zip`
 
-   * Logs saved to: `Logs/access-log.csv`
-   * AI model file path: `ML/score-model.zip`
-
-> The API is currently hosted via [Render.com](https://captchasysbacksmart.onrender.com/api/ping) for public testing.
+> The API is currently hosted here for testing:  
+https://captchasysbacksmart.onrender.com/api/ping
 
 ---
 
 ## 🌐 Related Projects & Links
 
-* 🔹 **Frontend Demo**: [CAPTCHA Frontend (GitHub Pages)](https://norman-deen.github.io/CaptchaSysFrontSmart/)
-* 🔹 **Backend Health Check**: [Ping Endpoint](https://captchasysbacksmart.onrender.com/api/ping)
-* 🔹 **Portfolio Website**: [pure-art.co](https://www.pure-art.co)
+- Frontend Demo: https://norman-deen.github.io/CaptchaSysFrontSmart/
+- Backend Health Check: https://captchasysbacksmart.onrender.com/api/ping
+- Portfolio Website: https://www.pure-art.co
 
 ---
 
 ## 📚 Technologies Used
 
-* .NET 8 (C#)
-* ML.NET (Randomized PCA)
-* RESTful API Design
-* CSV-based data storage
-* Hosted on Render (free plan with wake-up workaround)
+- .NET 8 (C#)
+- ML.NET (Randomized PCA)
+- RESTful API Design
+- CSV-based data storage
+- Hosted on Render (free plan with wake-up workaround)
 
 ---
 
 ## 📬 Contact
 
-**👨‍💻 Norman Deen (Nour Altinawi)**
-📧 [Deen80@live.com](mailto:Deen80@live.com)
-🌍 [pure-art.co](https://www.pure-art.co)
-🔗 [LinkedIn](https://www.linkedin.com/in/nour-tinawi)
+Norman Deen (Nour Altinawi)  
+📧 Deen80@live.com  
+🌍 https://www.pure-art.co  
+🔗 https://www.linkedin.com/in/nour-tinawi
 
 ---
 
 ## 🧠 Disclaimer
 
-This backend is part of an academic proof-of-concept developed for a final project. It is not intended for reuse or production environments.
+This backend is part of an academic proof-of-concept developed for a final project.  
+It is not intended for reuse or production environments.
