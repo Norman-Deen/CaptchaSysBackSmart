@@ -1,45 +1,86 @@
+# AI-based CAPTCHA System (Backend)
 
-# CAPTCHA Backend
+Backend API for a smart CAPTCHA system that detects and blocks bots by analyzing mouse and touch behavior using a custom AI model.
 
-Backend API for a smart CAPTCHA system that detects and blocks bots based on mouse and touch behavior analytics.
+> ⚠️ **Private Project** – Developed as part of a graduation thesis at EC Utbildning. Not open-source.
 
-> ⚠️ Private project – not open-source.
+---
 
-## Features
+## 🎯 Project Overview
 
-- Receives and logs mouse & touch interaction data  
-- Classifies behavior as **human** or **robot**  
-- Uses ML model (Randomized PCA via ML.NET)  
-- Logs data in `.csv` format with metadata  
-- Provides log access and deletion via REST API  
-- CORS support for frontend integration  
+This backend complements the frontend CAPTCHA system that avoids traditional image-based verification. Instead, it collects user interaction data (mouse and touch), then applies a trained ML model to determine whether the user is human or a bot.
 
-## Endpoints
+It is built with .NET and ML.NET and uses a lightweight structure that logs interaction data for ongoing model training and evaluation.
 
-- `POST /api/box` – Mouse data submission  
-- `POST /api/slider` – Touch data submission  
-- `GET /api/log` – Get log entries  
-- `DELETE /api/log/{index}` – Delete specific log entry  
+---
 
-## Usage
+## 🔧 Features
 
-1. Run with:
+- 🧠 **AI Detection**: Human vs. bot classification using ML.NET  
+- 📩 **Data Endpoints**: Separate routes for checkbox (mouse) and slider (touch) data  
+- 📁 **CSV Logging**: All interaction data is stored in `/Logs/access-log.csv`  
+- 🔄 **REST API**: To view and manage stored logs  
+- 🤝 **CORS Support**: For full integration with the frontend  
+- ⚙️ **Ping Endpoint**: For uptime and health checks
+
+---
+
+## 📡 API Endpoints
+
+| Method | Endpoint             | Description                          |
+|--------|----------------------|--------------------------------------|
+| POST   | `/api/box`           | Submit mouse interaction data        |
+| POST   | `/api/slider`        | Submit touch (slider) data           |
+| GET    | `/api/log`           | Retrieve all logged interaction data |
+| DELETE | `/api/log/{index}`   | Delete a specific log entry          |
+| GET    | `/api/ping`          | Health check / keep-alive            |
+
+---
+
+## 🚀 How to Run
+
+1. Make sure you have [.NET 6 or later](https://dotnet.microsoft.com/en-us/download)
+2. Run the backend locally with:
    ```bash
    dotnet run
 ````
 
-2. Logs are saved in: `Logs/access-log.csv`
+3. Default behavior:
 
-3. ML model file path: `ML/score-model.zip`
+   * Logs saved to: `Logs/access-log.csv`
+   * AI model file path: `ML/score-model.zip`
 
-## Requirements
+> The API is currently hosted via [Render.com](https://captchasysbacksmart.onrender.com/api/ping) for public testing.
 
-* .NET 6 or later
-* ML.NET
-* Hosting: Local or Render/Vercel compatible
+---
 
-## Contact
+## 🌐 Related Projects & Links
 
-**Norman Deen**
+* 🔹 **Frontend Demo**: [CAPTCHA Frontend (GitHub Pages)](https://norman-deen.github.io/CaptchaSysFrontSmart/)
+* 🔹 **Backend Health Check**: [Ping Endpoint](https://captchasysbacksmart.onrender.com/api/ping)
+* 🔹 **Portfolio Website**: [pure-art.co](https://www.pure-art.co)
+
+---
+
+## 📚 Technologies Used
+
+* .NET 8 (C#)
+* ML.NET (Randomized PCA)
+* RESTful API Design
+* CSV-based data storage
+* Hosted on Render (free plan with wake-up workaround)
+
+---
+
+## 📬 Contact
+
+**👨‍💻 Norman Deen (Nour Altinawi)**
 📧 [Deen80@live.com](mailto:Deen80@live.com)
-🌍 [LinkedIn](https://www.linkedin.com/in/nour-tinawi)
+🌍 [pure-art.co](https://www.pure-art.co)
+🔗 [LinkedIn](https://www.linkedin.com/in/nour-tinawi)
+
+---
+
+## 🧠 Disclaimer
+
+This backend is part of an academic proof-of-concept developed for a final project. It is not intended for reuse or production environments.
