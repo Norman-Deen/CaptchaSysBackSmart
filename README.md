@@ -1,88 +1,95 @@
-# AI-based CAPTCHA System (Backend)
+# AI Motion CAPTCHA API
 
-Backend API for a smart CAPTCHA system that detects and blocks bots by analyzing mouse and touch behavior using a custom AI model.
+Backend API for an experimental CAPTCHA system that analyzes user interaction behavior to help distinguish human activity from automated input.
 
-⚠️ Private Project – Developed as part of a graduation thesis at EC Utbildning. Not open-source.
-
----
-
-## 🎯 Project Overview
-
-This backend complements the frontend CAPTCHA system that avoids traditional image-based verification. Instead, it collects user interaction data (mouse and touch), then applies a trained ML model to determine whether the user is human or a bot.
-
-It is built with .NET and ML.NET and uses a lightweight structure that logs interaction data for ongoing model training and evaluation.
+> Academic proof-of-concept developed during my .NET Fullstack studies at EC Utbildning.
 
 ---
 
-## 🔧 Features
+## Overview
 
-- AI Detection using ML.NET
-- Separate endpoints for mouse (checkbox) and touch (slider) data
-- Logs data to: `/Logs/access-log.csv`
-- REST API to manage logs
-- CORS enabled for frontend communication
-- Ping endpoint for uptime/health checks
+This backend powers an AI-assisted CAPTCHA concept built around behavioral analysis instead of traditional image-based verification.
 
----
+The system receives mouse and touch interaction data from the frontend and evaluates movement patterns using an ML.NET-based model.
 
-## 📡 API Endpoints
-
-| Method | Endpoint             | Description                          |
-|--------|----------------------|--------------------------------------|
-| POST   | /api/box             | Submit mouse interaction data        |
-| POST   | /api/slider          | Submit touch (slider) data           |
-| GET    | /api/log             | Retrieve all logged interaction data |
-| DELETE | /api/log/{index}     | Delete a specific log entry          |
-| GET    | /api/ping            | Health check / keep-alive            |
+The project explores how motion characteristics such as timing, speed variation, and interaction flow can be used as an alternative verification method.
 
 ---
 
-## 🚀 How to Run
+## Core Features
 
-1. Make sure you have [.NET 6 or later](https://dotnet.microsoft.com/en-us/download)
-2. Run the backend locally with:
-
-   ```bash
-   dotnet run
-   ```
-
-3. Default behavior:
-   - Logs saved to: `Logs/access-log.csv`
-   - AI model file path: `ML/score-model.zip`
-
-> The API is currently hosted here for testing:  
-https://captchasysbacksmart.onrender.com/api/ping
+* AI-based behavior analysis with ML.NET
+* Separate interaction pipelines for desktop and mobile
+* REST API architecture
+* CSV-based interaction logging for training and evaluation
+* Frontend communication via CORS-enabled endpoints
+* Lightweight deployment structure
+* Health-check endpoint for uptime monitoring
 
 ---
 
-## 🌐 Related Projects & Links
+## API Endpoints
 
-- Frontend Demo: https://norman-deen.github.io/CaptchaSysFrontSmart/
-- Backend Health Check: https://captchasysbacksmart.onrender.com/api/ping
-- Portfolio Website: https://www.pure-art.co
-
----
-
-## 📚 Technologies Used
-
-- .NET 8 (C#)
-- ML.NET (Randomized PCA)
-- RESTful API Design
-- CSV-based data storage
-- Hosted on Render (free plan with wake-up workaround)
+| Method | Endpoint           | Description                           |
+| ------ | ------------------ | ------------------------------------- |
+| POST   | `/api/box`         | Submit desktop mouse interaction data |
+| POST   | `/api/slider`      | Submit mobile touch interaction data  |
+| GET    | `/api/log`         | Retrieve stored interaction logs      |
+| DELETE | `/api/log/{index}` | Delete a specific log entry           |
+| GET    | `/api/ping`        | API health check                      |
 
 ---
 
-## 📬 Contact
+## Technologies Used
 
-Norman Deen (Nour Altinawi)  
-📧 Deen80@live.com  
-🌍 https://www.pure-art.co  
-🔗 https://www.linkedin.com/in/nour-tinawi
+* .NET 8 (C#)
+* ML.NET
+* REST API Design
+* CSV-based logging system
+* Render.com deployment
+* Frontend integration with Vanilla JavaScript
 
 ---
 
-## 🧠 Disclaimer
+## Project Purpose
 
-This backend is part of an academic proof-of-concept developed for a final project.  
-It is not intended for reuse or production environments.
+The goal of this project was to explore practical integration between:
+
+* AI-assisted verification systems
+* Behavioral analytics
+* Frontend and backend communication
+* ML.NET model integration
+* Real-world web interaction tracking
+
+Rather than focusing on production deployment, the project was designed as a technical and research-oriented prototype.
+
+---
+
+## Related Links
+
+* Frontend Demo:
+  [GitHub Pages Demo](https://norman-deen.github.io/CaptchaSysFrontSmart/?utm_source=chatgpt.com)
+
+* Backend API:
+  [Backend Health Check](https://captchasysbacksmart.onrender.com/api/ping?utm_source=chatgpt.com)
+
+* Portfolio Website:
+  [Pure-Art.co](https://www.pure-art.co?utm_source=chatgpt.com)
+
+---
+
+## Contact
+
+**Nour Tinawi (Norman Deen)**
+
+* LinkedIn:
+  [LinkedIn Profile](https://www.linkedin.com/in/nour-tinawi?utm_source=chatgpt.com)
+
+* Website:
+  [Pure-Art.co](https://www.pure-art.co?utm_source=chatgpt.com)
+
+---
+
+## Notes
+
+This project was developed as part of a graduation thesis focused on AI-assisted behavioral analysis and web-based verification systems. It serves as a research and demonstration project showcasing frontend, backend, and machine learning integration. 
