@@ -68,13 +68,13 @@ Rather than focusing on production deployment, the project was designed as a tec
 ## Related Links
 
 * Frontend Demo:
-  [GitHub Pages Demo](https://norman-deen.github.io/CaptchaSysFrontSmart/?utm_source=chatgpt.com)
+  [GitHub Pages Demo](https://norman-deen.github.io/CaptchaSysFrontSmart/)
 
 * Backend API:
-  [Backend Health Check](https://captchasysbacksmart.onrender.com/api/ping?utm_source=chatgpt.com)
+  [Backend Health Check](https://captchasysbacksmart.onrender.com/api/ping)
 
 * Portfolio Website:
-  [Pure-Art.co](https://www.pure-art.co?utm_source=chatgpt.com)
+  [Nourtin](https://nourtin.com)
 
 ---
 
@@ -83,13 +83,28 @@ Rather than focusing on production deployment, the project was designed as a tec
 **Nour Tinawi (Norman Deen)**
 
 * LinkedIn:
-  [LinkedIn Profile](https://www.linkedin.com/in/nour-tinawi?utm_source=chatgpt.com)
+  [LinkedIn Profile](https://www.linkedin.com/in/nour-tinawi)
 
 * Website:
-  [Pure-Art.co](https://www.pure-art.co?utm_source=chatgpt.com)
+  [Nourtin](https://nourtin.com)
 
 ---
 
 ## Notes
 
 This project was developed as part of a graduation thesis focused on AI-assisted behavioral analysis and web-based verification systems. It serves as a research and demonstration project showcasing frontend, backend, and machine learning integration. 
+
+## Local development and repository contents
+
+Requires the .NET 8 SDK.
+
+```bash
+git clone https://github.com/Norman-Deen/CaptchaSysBackSmart.git
+cd CaptchaSysBackSmart
+dotnet restore CaptchaApi.csproj
+dotnet run --project CaptchaApi.csproj
+```
+
+The application uses the `PORT` environment variable, with port `8080` as its default. The pretrained runtime model is retained at `ML/score-model.zip`; build outputs can be regenerated from source. Training is disabled at startup by default. The CSV log and the educational log-viewing workflow are retained as part of the graduation demonstration.
+
+This research prototype does not establish production-grade bot detection or validated classification accuracy.
